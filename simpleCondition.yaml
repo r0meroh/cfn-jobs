@@ -1,0 +1,58 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: "This is my version of a simple example of how to use a condition
+to determine what resources get created"
+
+Parameters:
+  Environment:
+    Description: This is a parameter that the condition will check
+    Type: String
+    Default: test
+    AllowedValues: ["test", "prod", "live"]
+
+  NeedsPolicy:
+    Description: If yes is entered in this field, a policy will be created. Only
+    for prod environment
+    Type: String
+    AllowedValues: ["yes", AWS::NoValue]
+
+Conditions:
+  CreatePolicy: !Equals [!Ref NeedsPolicy, "yes"]
+  IsProd: !Equals [!Ref Environment, "prod"]
+  IsTest: !Equals [!Ref Environment, "test"]
+  IsLive: !Equals [!Ref Environment, "live"]
+  NeedsPolicy: !And [!Condition IsProd, !Condition CreatePolicy]
+
+Resources:
+  bucketWithoutCondition:
+    Description: This bucket is created by default
+    Type: AWS::S3::Bucket
+
+  bucketTest:
+    Description: This bucket is created when input parameter is test
+    Type: AWS::S3::Bucket
+    Condition: IsTest
+    Properties:
+      BucketName: bucket-in-test-environment
+
+  bucketProd:
+    Description: This bucket is created when input parameter is prod
+    Condition: IsProd
+    Type: AWS::S3::Bucket
+  Policy:
+    Type: AWS::S3::BucketPolicy
+    Condition: NeedsPolicy
+    Properties:
+      Bucket: !Ref bucketProd
+        PolicyDocument:
+          Version: 2012-10-17
+          Statement:
+            - Action:
+              - 's3:GetObject'
+              Effect: Allow
+              Resource: !Join
+              - ''
+              - - 'arn:aws:s3:::'
+                - !Ref bucketProd
+                - /*
+              Principal: '*'
