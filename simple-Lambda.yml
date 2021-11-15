@@ -1,0 +1,22 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Description: Base level template for creating a Lambda Function, needs a LambdaIAMRole
+Parameters:
+  LambdaIAMRole:
+    Description: ARN of IAM Role for Lambda Execution
+    Type: String
+
+
+Resources:
+  myLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      Description: simple function that prints hello
+      FunctionName: Hello-Lambda
+      Handler: index.lambda_handler
+      Role: !Ref LambdaIAMRole
+      Runtime: python2.7
+      Code:
+        ZipFile: !Sub |
+          def lambda_handler(event, context):
+            return 'hello from lambda'
