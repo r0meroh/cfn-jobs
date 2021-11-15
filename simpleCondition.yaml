@@ -1,7 +1,8 @@
 AWSTemplateFormatVersion: "2010-09-09"
 
 Description: "This is my version of a simple example of how to use a condition
-to determine what resources get created"
+to determine what resources get created". PLEASE CHANGE BUCKET NAMES AS ALL
+BUCKET NAMES NEED TO BE UNIQUE GLOBALLY
 
 Parameters:
   Environment:
