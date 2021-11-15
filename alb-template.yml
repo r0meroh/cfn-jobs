@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: "2010-09-09"
 
-Description: This template creates an Application Load Balancer
+Description: This template creates an Application Load Balancer requires the "vpc temlate" and "natgateway template"
 
 Metadata:
   AWS::CloudFormation::Interface:
