@@ -1,0 +1,75 @@
+# to be used with vpc.yml
+AWSTemplateFormatVersion: "2010-09-09"
+Description: This template creates a NAT Gateway, requites "vpc-template" for plug and play usage
+Parameters:
+  ExportVpcStackName:
+    Description: The name of the vpc stack that exports required values
+    Type: String
+
+Resources:
+# Allocate Elastic Ip Address
+  NatGatewayEIP:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: VPC
+      Tags:
+        - Key: Name
+          Value: EIP
+
+  NatGateway2EIP:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: VPC
+      Tags:
+        - Key: Name
+          Value: EIP 2
+
+
+# NatGateway to use public subnet
+  NatGateway:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt NatGatewayEIP.AllocationId
+      SubnetId:
+        Fn::ImportValue: !Sub ${ExportVpcStackName}-PublicSubnet
+      Tags:
+        - Key: Name
+          Value: Nat Gateway Public Subnet
+
+  NatGateway2:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt NatGateway2EIP.AllocationId
+      SubnetId:
+        Fn::ImportValue: !Sub ${ExportVpcStackName}-PublicSubnet2
+      Tags:
+        - Key: Name
+          Value: Nat Gateway 2 Public Subnet
+
+# Private Route Table
+  PrivateRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:
+        Fn::ImportValue: !Sub ${ExportVpcStackName}-VPC
+      Tags:
+        - Key: Name
+          Value: Private Route Table
+
+
+# Private Route
+  PrivateRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NatGateway
+      RouteTableId: !Ref PrivateRouteTable
+
+# associate private subnet to route table
+
+  PrivateSubnetRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable
+      SubnetId:
+        Fn::ImportValue: !Sub ${ExportVpcStackName}-PrivateSubnet
